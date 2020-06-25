@@ -42,12 +42,12 @@ class Categories():
         a_file.close()
 
     def verify_item_in_category(self):
-        for index, row in df.iterrows():
+        for index, row in self.outcome.iterrows():
             flag = False
             for key in self.categories.keys():
                 list_places = self.categories.get(key)
                 if row["place"] in list_places:
-                    df.at[index, "category"] = str(key)
+                    self.outcome.at[index, "category"] = str(key)
                     flag = True
             if not flag:
                 value = Categories.ask_category(self, row)
@@ -63,20 +63,8 @@ class Categories():
                     list_keys = [int(i) for i in list_keys]
                     list_keys.sort()
                     self.index_categories[str(list_keys[-1] + 1)] = value
-                df.at[index, "category"] = value
+                self.outcome.at[index, "category"] = value
 
         Categories.write_dictionary(self, self.categories, var.path_categories)
         Categories.write_dictionary(self, self.index_categories, var.path_index_categories)
-        df.to_csv(var.path_outcome, mode='a', header=False, index=False)
-
-
-e_mail = TakeEmail(var.username, var.pwd)
-e_mail.connect_server()
-emails = e_mail.fetch_data()
-transform = TransformData(emails, var.username)
-transform.verify_last_message_index()
-df = transform.take_information()
-categories = Categories(df)
-categories.read_categories()
-categories.verify_item_in_category()
-# print(categories.categories)
+        self.outcome.to_csv(var.path_outcome, mode='a', header=False, index=False)
