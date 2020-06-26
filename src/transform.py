@@ -35,7 +35,7 @@ class TransformData():
             for item in self.email:
                 date = re.search(r'\d{2}/\d{2}/\d{4}', item)
                 hour = re.search(r'\d{2}:\d{2}', item)
-                #hour = datetime.strptime(hour.group(), '%H:%M').time()
+                # hour = datetime.strptime(hour.group(), '%H:%M').time()
                 date = datetime.strptime(date.group() + " " + hour.group(), '%d/%m/%Y %H:%M')
                 print(date)
                 amount = item[item.index("$") + len("$"):item.index(" en")]
@@ -51,12 +51,3 @@ class TransformData():
         df.sort_values(by="date")
         df = df[df["date"] < self.last_date].reset_index(drop=True)
         return df
-
-
-e_mail = TakeEmail(var.username, var.pwd)
-e_mail.connect_server()
-emails = e_mail.fetch_data()
-transform = TransformData(emails, var.username)
-transform.verify_last_message_index()
-df = transform.take_information()
-# print(transform.last_date)
