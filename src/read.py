@@ -30,7 +30,7 @@ class TakeEmail():
         if self.flag_atachment:
             self.status, self.data = self.server.search(None, 'FROM', "'" + email_extract + "'")
 
-    def fetch_body(self) -> None:
+    def fetch_body_banco_estado(self) -> None:
 
         self.text_clean = []
         for num in self.data[0].split():
@@ -39,11 +39,48 @@ class TakeEmail():
             msg = email.message_from_bytes(raw_email)
             for part in msg.walk():
                 text = part.get_payload()
-                clean_text = BeautifulSoup(text, "lxml").text
-                clean_text = re.sub('=', '', clean_text)
-                clean_text = clean_text.replace("\r\n", "")
+                soup = BeautifulSoup(text, 'lxml')
+                clean_text = soup.get_text()
+                clean_text = re.sub('=', ' ', clean_text)
+                clean_text = clean_text.replace("\r\n", " ")
                 clean_text = re.sub(' +', ' ', clean_text)
                 self.text_clean.append(clean_text)
+        return self.text_clean
+
+    def fetch_body_bci(self, servicio: str) -> None:
+
+        self.text_clean = []
+        for num in self.data[0].split()[:]:
+            status, data = self.server.fetch(num, '(RFC822)')
+            raw_email = data[0][1]
+            msg = email.message_from_bytes(raw_email)
+            for part in msg.walk():
+                text = part.get_payload()
+                if isinstance(text, str):
+                    clean_text = BeautifulSoup(text, "lxml")
+                    clean_text = clean_text.get_text()
+                    if clean_text.find(servicio) != -1:
+                        clean_text = re.sub('=', '', clean_text)
+                        clean_text = clean_text.replace("\r\n", " ")
+                        clean_text = clean_text.replace("\n", " ")
+                        clean_text = clean_text.replace("\t", " ")
+                        clean_text = re.sub(' +', ' ', clean_text)
+                        self.text_clean.append(clean_text)
+                temp = []
+                if isinstance(text, list):
+                    for item in text:
+                        txt = item.get_payload()
+                        clean_text = BeautifulSoup(txt, "lxml")
+                        clean_text = clean_text.get_text()
+                        if clean_text.find(servicio) != -1:
+                            clean_text = re.sub('=', '', clean_text)
+                            clean_text = clean_text.replace("\r\n", " ")
+                            clean_text = clean_text.replace("\n", " ")
+                            clean_text = clean_text.replace("\t", " ")
+                            clean_text = re.sub(' +', ' ', clean_text)
+                            temp = temp + [clean_text]
+                if len(temp) > 0:
+                    self.text_clean.extend(temp)
         return self.text_clean
 
     def fetch_attachment(self, path_pdf: str) -> None:
@@ -52,7 +89,6 @@ class TakeEmail():
         for item in items:
             status, data = self.server.fetch(item, '(RFC822)')
             raw = email.message_from_bytes(data[0][1])
-            print(raw['Date'])
             if "GMT" in raw['Date']:
                 date = datetime.strptime(raw['Date'][:-12], "%a, %d %b %Y %H:%M:%S %z")
             else:

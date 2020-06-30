@@ -1,7 +1,7 @@
 from src.read import TakeEmail
 
 
-class ReadBancoEstado():
+class ReadGastosComunes():
 
     def __init__(self, username, pwd, email, path):
         self.username = username
@@ -10,7 +10,8 @@ class ReadBancoEstado():
         self.path = path
         self.body = []
 
-    def read_banco_estado(self):
+    def read_gastos_comunes(self):
         e_mail = TakeEmail(self.username, self.pwd)
         e_mail.connect_server_extract_data(self.email)
-        self.body = e_mail.fetch_body_banco_estado()
+        e_mail.flag_atachment = True
+        e_mail.fetch_attachment(self.path)
