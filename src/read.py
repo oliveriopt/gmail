@@ -134,7 +134,7 @@ class TakeEmail:
     def fetch_attachment_gastos_comunes(self, filename, date):
         if "Gastos comunes departamento 1102" in filename:
             os.rename(self.path_pdf + filename,
-                  self.path_pdf + date.strftime("%Y") + "_" + date.strftime("%m") + ".pdf")
+                      self.path_pdf + date.strftime("%Y") + "_" + date.strftime("%m") + ".pdf")
 
         else:
             os.remove(self.path_pdf + filename)

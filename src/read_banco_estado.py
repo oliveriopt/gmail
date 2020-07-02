@@ -11,6 +11,6 @@ class ReadBancoEstado():
         self.body = []
 
     def read_banco_estado(self):
-        e_mail = TakeEmail(self.username, self.pwd)
+        e_mail = TakeEmail(self.username, self.pwd, None)
         e_mail.connect_server_extract_data(self.email)
         self.body = e_mail.fetch_body_banco_estado()

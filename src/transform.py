@@ -34,7 +34,6 @@ class TransformData():
             for item in self.email:
                 date = re.search(r'\d{2}/\d{2}/\d{4}', item)
                 hour = re.search(r'\d{2}:\d{2}', item)
-                # hour = datetime.strptime(hour.group(), '%H:%M').time()
                 date = datetime.strptime(date.group() + " " + hour.group(), '%d/%m/%Y %H:%M')
                 print(date)
                 amount = item[item.index("$") + len("$"):item.index(" en")]

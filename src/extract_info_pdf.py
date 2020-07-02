@@ -44,6 +44,12 @@ class ExtractInformationPDF():
         amount = int(x[:x.find(" ")].replace(".", ""))
         return amount
 
+    def extract_gas_valpo(self, next):
+        x = re.sub(' +', ' ', self.text_pdf)
+        amount = x[x.find("Total a pagar $") + 16:x.rfind("8058733")].rstrip().replace(".", "")
+        print(amount)
+        return int(amount)
+
     def extract_gastos_comunes(self, next):
         if next.year <= 2019 and next.month <= 1:
             self.text_pdf = re.sub(' +', ' ', self.text_pdf)
@@ -79,7 +85,8 @@ class ExtractInformationPDF():
         """
         r = relativedelta(self.end_year_month, self.init_year_month)
         next = self.init_year_month
-        ExtractInformationPDF.write_file(self, "xx", None)
+        if self.service != "gas_valpo":
+            ExtractInformationPDF.write_file(self, "xx", None)
         for month in range((r.years * 12) + r.months + 1):
             ExtractInformationPDF.name_file(self, next)
             if os.path.isfile(self.path + self.file):
@@ -92,19 +99,6 @@ class ExtractInformationPDF():
                 if self.service == "gastos_comunes":
                     ExtractInformationPDF.write_file(self, next, ExtractInformationPDF.extract_gastos_comunes(self,
                                                                                                               next))
+                if self.service == "gas_valpo":
+                    ExtractInformationPDF.write_file(self, next, ExtractInformationPDF.extract_gas_valpo(self, next))
             next = ExtractInformationPDF.next_month(self, next)
-
-
-# ##extract_entel = ExtractInformationPDF("entel", var.path_pdf_entel, var.path_outcome_entel, var.init_year_month_entel,
-#                                       var.end_year_month)
-# extract_entel.run_transform_pdf()
-#
-# extract_esval = ExtractInformationPDF("esval", var.path_pdf_esval, var.path_outcome_esval, var.init_year_month_esval,
-#                                       var.end_year_month)
-# extract_esval.run_transform_pdf()
-
-extract_gastos_comunes = ExtractInformationPDF("gastos_comunes", var.path_pdf_gastos_comunes,
-                                               var.path_outcome_gastos_comunes,
-                                               var.init_year_month_gastos_comunes,
-                                               var.end_year_month)
-extract_gastos_comunes.run_transform_pdf()
