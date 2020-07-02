@@ -1,9 +1,8 @@
-from src.read import TakeEmail
+from datetime import datetime
 
 import src.variables as var
 import pandas as pd
-import re, ast
-from datetime import datetime
+import re
 
 pd.set_option('display.max_rows', 1000)
 pd.set_option('display.max_columns', 500)

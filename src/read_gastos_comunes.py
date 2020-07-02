@@ -11,7 +11,7 @@ class ReadGastosComunes():
         self.body = []
 
     def read_gastos_comunes(self):
-        e_mail = TakeEmail(self.username, self.pwd)
+        e_mail = TakeEmail(self.username, self.pwd, self.path)
         e_mail.connect_server_extract_data(self.email)
         e_mail.flag_atachment = True
-        e_mail.fetch_attachment(self.path)
+        e_mail.fetch_attachment()

@@ -6,11 +6,12 @@ import imaplib
 import email
 import re
 import os
+import pikepdf
 
 
-class TakeEmail():
+class TakeEmail:
 
-    def __init__(self, username, pwd):
+    def __init__(self, username: str, pwd: str, path_pdf: str):
         self.imap_ssl_host = var.SMTP_SERVER
         self.imap_ssl_port = var.SMTP_PORT
         self.username = username
@@ -18,6 +19,7 @@ class TakeEmail():
         self.server = imaplib.IMAP4_SSL(self.imap_ssl_host, self.imap_ssl_port)
         self.text_clean = []
         self.flag_atachment = False
+        self.path_pdf = path_pdf
 
     def connect_server_extract_data(self, email_extract):
         """"
@@ -83,12 +85,38 @@ class TakeEmail():
                     self.text_clean.extend(temp)
         return self.text_clean
 
-    def fetch_attachment(self, path_pdf: str) -> None:
+    def fetch_attachment_esval(self, filename: str, date):
+        os.rename(self.path_pdf + filename,
+                  self.path_pdf + date.strftime("%Y") + "_" + date.strftime("%m") + ".pdf")
+        if filename.endswith(".xml"):
+            os.remove(self.path_pdf + date.strftime("%Y") + "_" + date.strftime("%m") + ".pdf")
+
+    def fetch_attachment_entel(self, filename: str, date):
+        os.rename(self.path_pdf + filename,
+                  self.path_pdf + date.strftime("%m") + "_" + date.strftime("%Y") + "_" + \
+                  filename)
+        try:
+            init_pdf = pikepdf.open(
+                self.path_pdf + date.strftime("%m") + "_" + date.strftime("%Y") + "_"
+                + \
+                filename, password='4713')
+            new_pdf = pikepdf.new()
+            new_pdf.pages.extend(init_pdf.pages)
+            new_pdf.save(str(self.path_pdf + date.strftime("%Y") + "_" + date.strftime("%m") + ".pdf"))
+            os.remove(self.path_pdf + date.strftime("%m") + "_" + date.strftime("%Y") + "_" + \
+                      filename)
+        except:
+            os.remove(self.path_pdf + date.strftime("%m") + "_" + date.strftime("%Y") + "_" + \
+                      filename)
+            pass
+
+    def fetch_attachment(self) -> None:
 
         items = self.data[0].split()
         for item in items:
             status, data = self.server.fetch(item, '(RFC822)')
             raw = email.message_from_bytes(data[0][1])
+            print(raw["Date"])
             if "GMT" in raw['Date']:
                 date = datetime.strptime(raw['Date'][:-12], "%a, %d %b %Y %H:%M:%S %z")
             else:
@@ -109,7 +137,7 @@ class TakeEmail():
                     filename = 'part-%03d%s' % (counter, 'bin')
                     counter += 1
 
-                att_path = os.path.join(path_pdf, filename)
+                att_path = os.path.join(self.path_pdf, filename)
                 # Check if its already there
 
                 if not os.path.isfile(att_path):
@@ -117,5 +145,9 @@ class TakeEmail():
                     fp = open(att_path, 'wb')
                     fp.write(part.get_payload(decode=True))
                     fp.close()
-                    os.rename(path_pdf + filename, path_pdf + date.strftime("%b") + "_" + date.strftime("%Y") + "_" + \
-                              filename)
+
+                    if "esval" in self.path_pdf:
+                        TakeEmail.fetch_attachment_esval(self, filename, date)
+
+                    if "entel" in self.path_pdf:
+                        TakeEmail.fetch_attachment_entel(self, filename, date)
