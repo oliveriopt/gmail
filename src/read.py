@@ -94,6 +94,58 @@ class TakeEmail:
                     self.text_clean.extend(temp)
         return self.text_clean
 
+    def fetch_body_bci_debito(self) -> None:
+        """
+        Fetch body of email from BCI for debit card
+        :param servicio: kind of service
+        :return:
+        """
+
+        self.text_clean = []
+        for num in self.data[0].split()[:]:
+            status, data = self.server.fetch(num, '(RFC822)')
+            raw_email = data[0][1]
+            msg = email.message_from_bytes(raw_email)
+            for part in msg.walk():
+                text = part.get_payload()
+                if isinstance(text, str):
+                    clean_text = BeautifulSoup(text, "lxml")
+                    clean_text = clean_text.get_text()
+                    if clean_text.find("Tarjeta de Debito") != -1:
+                        #clean_text = clean_text.replace("\n", " ")
+                        print(repr(clean_text))
+
+                #     clean_text = BeautifulSoup(text, "lxml")
+                #     clean_text = clean_text.get_text()
+                #     if clean_text.find(servicio) != -1:
+                #         clean_text = re.sub('=', '', clean_text)
+                #         clean_text = clean_text.replace("\r\n", " ")
+                #         clean_text = clean_text.replace("\n", " ")
+                #         clean_text = clean_text.replace("\t", " ")
+                #         clean_text = re.sub(' +', ' ', clean_text)
+                #         self.text_clean.append(clean_text)
+                # temp = []
+                if isinstance(text, list):
+                     for item in text:
+                         #print(item)
+                         txt = item.get_payload()
+                         clean_text = BeautifulSoup(txt, "lxml")
+                         clean_text = clean_text.get_text()
+                         if clean_text.find("Tarjeta de Debito") != -1:
+                             clean_text = BeautifulSoup(text, "lxml")
+                             clean_text = clean_text.get_text()
+                             #clean_text = clean_text.replace("\n", " ")
+                             print(repr(clean_text))
+                #             clean_text = re.sub('=', '', clean_text)
+                #             clean_text = clean_text.replace("\r\n", " ")
+                #             clean_text = clean_text.replace("\n", " ")
+                #             clean_text = clean_text.replace("\t", " ")
+                #             clean_text = re.sub(' +', ' ', clean_text)
+                #             temp = temp + [clean_text]
+                # if len(temp) > 0:
+                #     self.text_clean.extend(temp)
+        return self.text_clean
+
     def fetch_attachment_esval(self, filename: str, date: datetime) -> None:
         """
         Fetch attachment from esval
