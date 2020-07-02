@@ -8,7 +8,6 @@ class ReadEsval():
         self.pwd = pwd
         self.email = email
         self.path = path
-        self.body = []
 
     def read_esval(self):
         e_mail = TakeEmail(self.username, self.pwd, self.path)

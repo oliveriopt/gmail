@@ -4,6 +4,7 @@ from datetime import datetime, date, timedelta
 
 import src.variables as var
 import os
+import re
 
 
 class ExtractInformationPDF():
@@ -43,6 +44,23 @@ class ExtractInformationPDF():
         amount = int(x[:x.find(" ")].replace(".", ""))
         return amount
 
+    def extract_gastos_comunes(self, next):
+        if next.year <= 2019 and next.month <= 1:
+            self.text_pdf = re.sub(' +', ' ', self.text_pdf)
+            x = self.text_pdf[self.text_pdf.find('VALOR A PAGAR') + 13:self.text_pdf.find('1.-') - 1]
+            x = x[x.rfind(" "):]
+
+        if (next.year >= 2019 and next.month >= 2) | (next.year >= 2020 and next.month >= 1):
+            print(next)
+            self.text_pdf = re.sub(' +', ' ', self.text_pdf)
+            x = self.text_pdf[self.text_pdf.find('VALOR A PAGAR') + 13:self.text_pdf.find('1.-') - 1]
+            x = re.sub('[^0-9,.]', ' ', x)
+            x = re.sub(' +', ' ', x).rstrip()
+            x = x.replace(".", "").replace(",", ".").rstrip()
+            x = x[x.rfind(" "):]
+
+        return float(x)
+
     def write_file(self, date, amount):
         if amount is None:
             if os.path.isfile(self.path_outcome):
@@ -54,7 +72,6 @@ class ExtractInformationPDF():
             file.write("%s,%d\n" % (date, amount))
         file.close()
 
-
     def run_transform_pdf(self):
         """
 
@@ -63,7 +80,7 @@ class ExtractInformationPDF():
         r = relativedelta(self.end_year_month, self.init_year_month)
         next = self.init_year_month
         ExtractInformationPDF.write_file(self, "xx", None)
-        for month in range((r.years * 12) + r.months):
+        for month in range((r.years * 12) + r.months + 1):
             ExtractInformationPDF.name_file(self, next)
             if os.path.isfile(self.path + self.file):
                 ExtractInformationPDF.transform_pdf(self)
@@ -72,15 +89,22 @@ class ExtractInformationPDF():
                     ExtractInformationPDF.write_file(self, next, ExtractInformationPDF.extract_entel_esval(self))
                 if self.service == "esval":
                     ExtractInformationPDF.write_file(self, next, ExtractInformationPDF.extract_entel_esval(self))
-
+                if self.service == "gastos_comunes":
+                    ExtractInformationPDF.write_file(self, next, ExtractInformationPDF.extract_gastos_comunes(self,
+                                                                                                              next))
             next = ExtractInformationPDF.next_month(self, next)
 
 
-extract_entel = ExtractInformationPDF("entel", var.path_entel, var.path_outcome_entel, var.init_year_month_entel,
-                                      var.end_year_month)
-extract_entel.run_transform_pdf()
+# ##extract_entel = ExtractInformationPDF("entel", var.path_pdf_entel, var.path_outcome_entel, var.init_year_month_entel,
+#                                       var.end_year_month)
+# extract_entel.run_transform_pdf()
+#
+# extract_esval = ExtractInformationPDF("esval", var.path_pdf_esval, var.path_outcome_esval, var.init_year_month_esval,
+#                                       var.end_year_month)
+# extract_esval.run_transform_pdf()
 
-extract_esval = ExtractInformationPDF("esval", var.path_esval, var.path_outcome_esval, var.init_year_month_esval,
-                                      var.end_year_month)
-print("ok")
-extract_esval.run_transform_pdf()
+extract_gastos_comunes = ExtractInformationPDF("gastos_comunes", var.path_pdf_gastos_comunes,
+                                               var.path_outcome_gastos_comunes,
+                                               var.init_year_month_gastos_comunes,
+                                               var.end_year_month)
+extract_gastos_comunes.run_transform_pdf()

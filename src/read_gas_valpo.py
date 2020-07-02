@@ -10,7 +10,10 @@ class ReadGasValpo():
         self.path = path
         self.body = []
 
-    def read_gas_valpo(self):
-        e_mail = TakeEmail(self.username, self.pwd)
+    def read_gas_valpo(self)->None:
+        """
+        Fetcch the body for Gas VAlpo
+        """
+        e_mail = TakeEmail(self.username, self.pwd, self.path)
         e_mail.connect_server_extract_data(self.email)
         self.body = e_mail.fetch_body_bci(servicio="Gas Valpo")

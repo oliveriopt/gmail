@@ -21,7 +21,7 @@ class TakeEmail:
         self.flag_atachment = False
         self.path_pdf = path_pdf
 
-    def connect_server_extract_data(self, email_extract):
+    def connect_server_extract_data(self, email_extract) -> None:
         """"
         Connect server and fectch data
         """
@@ -32,7 +32,11 @@ class TakeEmail:
         if self.flag_atachment:
             self.status, self.data = self.server.search(None, 'FROM', "'" + email_extract + "'")
 
-    def fetch_body_banco_estado(self) -> None:
+    def fetch_body_banco_estado(self) -> str:
+        """
+        Fetch body of email
+        :return:
+        """
 
         self.text_clean = []
         for num in self.data[0].split():
@@ -50,6 +54,11 @@ class TakeEmail:
         return self.text_clean
 
     def fetch_body_bci(self, servicio: str) -> None:
+        """
+        Fetch body of email from BCI
+        :param servicio: kind of service
+        :return:
+        """
 
         self.text_clean = []
         for num in self.data[0].split()[:]:
@@ -85,13 +94,25 @@ class TakeEmail:
                     self.text_clean.extend(temp)
         return self.text_clean
 
-    def fetch_attachment_esval(self, filename: str, date):
+    def fetch_attachment_esval(self, filename: str, date: datetime) -> None:
+        """
+        Fetch attachment from esval
+        :param filename: name of the file
+        :param date: date to process
+        :return:
+        """
         os.rename(self.path_pdf + filename,
                   self.path_pdf + date.strftime("%Y") + "_" + date.strftime("%m") + ".pdf")
         if filename.endswith(".xml"):
             os.remove(self.path_pdf + date.strftime("%Y") + "_" + date.strftime("%m") + ".pdf")
 
-    def fetch_attachment_entel(self, filename: str, date):
+    def fetch_attachment_entel(self, filename: str, date: datetime) -> None:
+        """
+        Fetch attachment of entel
+        :param filename:
+        :param date:
+        :return:
+        """
         os.rename(self.path_pdf + filename,
                   self.path_pdf + date.strftime("%m") + "_" + date.strftime("%Y") + "_" + \
                   filename)
@@ -110,7 +131,20 @@ class TakeEmail:
                       filename)
             pass
 
+    def fetch_attachment_gastos_comunes(self, filename, date):
+        if "Gastos comunes departamento 1102" in filename:
+            os.rename(self.path_pdf + filename,
+                  self.path_pdf + date.strftime("%Y") + "_" + date.strftime("%m") + ".pdf")
+
+        else:
+            os.remove(self.path_pdf + filename)
+        pass
+
     def fetch_attachment(self) -> None:
+        """
+        Fetch attachement from email
+        :return:
+        """
 
         items = self.data[0].split()
         for item in items:
@@ -151,3 +185,6 @@ class TakeEmail:
 
                     if "entel" in self.path_pdf:
                         TakeEmail.fetch_attachment_entel(self, filename, date)
+
+                    if "gastos_comunes" in self.path_pdf:
+                        TakeEmail.fetch_attachment_gastos_comunes(self, filename, date)
